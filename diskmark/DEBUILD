@@ -1,0 +1,16 @@
+Package=diskmark
+Version=1.0.0
+Section=utils
+Priority=optional
+Architecture=all
+Depends="fio, bc"
+Maintainer=ghostry@ghostry.cn
+Description="diskmark package"
+source=(https://github.com/ghostry/scriptPublic/archive/master.zip)
+build(){
+    unzip master.zip -d ${srcdir}
+}
+package(){
+    installDIR /usr/bin
+    installBin /scriptPublic-master/diskmark /usr/bin/diskmark
+}

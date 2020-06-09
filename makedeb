@@ -1,0 +1,56 @@
+#!/bin/bash
+fn_exists() {
+    [ `type -t $1`"" == 'function' ]
+}
+installBin(){
+    mv ${srcdir}$1 ${debdir}$2
+    chmod 755 ${debdir}$2
+}
+installData(){
+    mv ${srcdir}$1 ${debdir}$2
+    chmod 644 ${debdir}$2
+}
+installDIR(){
+    mkdir -p ${debdir}$1
+}
+source DEBUILD
+if [ $? -ne 0 ]; then
+    echo "not find DEBUILD"
+fi
+# 检查是否有deb文件地址
+if [[ ! -z "${deburl}" ]]; then
+    wget -nc "${deburl}"
+    exit
+fi
+# 检查配置文件
+if [[ `type -t package`"" != 'function' ]]; then
+    echo "not find package()"
+fi
+# 下载文件
+for url in ${source[@]}
+do
+    wget -nc ${url}
+done
+# 调用函数
+srcdir=src
+debdir=deb
+mkdir ${srcdir}
+mkdir ${debdir}
+rm -rf ${srcdir}/*
+rm -rf ${debdir}/*
+if [[ `type -t build`"" == 'function' ]]; then
+    build
+fi
+package
+# 生成contrl文件
+mkdir ${debdir}/DEBIAN
+echo "Package: ${Package}" > ${debdir}/DEBIAN/control
+echo "Version: ${Version}" >> ${debdir}/DEBIAN/control
+echo "Section: ${Section}" >> ${debdir}/DEBIAN/control
+echo "Priority: ${Priority}" >> ${debdir}/DEBIAN/control
+echo "Architecture: ${Architecture}" >> ${debdir}/DEBIAN/control
+echo "Depends: ${Depends}" >> ${debdir}/DEBIAN/control
+echo "Maintainer: ${Maintainer}" >> ${debdir}/DEBIAN/control
+echo "Description: ${Description}" >> ${debdir}/DEBIAN/control
+# 打包
+dpkg -b ${debdir} ${Package}-${Version}.deb
